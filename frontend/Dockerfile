@@ -1,3 +1,4 @@
+cat << 'EOF' > ~/aito.com/frontend/Dockerfile
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
@@ -18,3 +19,4 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 CMD ["node", "server.js"]
+EOF
