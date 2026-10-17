@@ -37,7 +37,9 @@ export default function VendorDashboard() {
     }
 
     const user = JSON.parse(userStr);
-    if (user.role !== 'vendor') {
+    const userRole = user?.role ? String(user.role).toLowerCase() : '';
+
+    if (userRole !== 'vendor' && userRole !== 'shop') {
       router.push('/');
       return;
     }
