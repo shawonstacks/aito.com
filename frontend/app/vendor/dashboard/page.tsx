@@ -52,9 +52,21 @@ export default function VendorDashboard() {
       const res = await axios.get('http://172.16.54.179:5000/api/products/my-products', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setProducts(res.data);
+
+      // safe parsing: array, { products: [] }, or { data: [] }
+      const rawData = res.data;
+      const productList = Array.isArray(rawData)
+        ? rawData
+        : Array.isArray(rawData?.products)
+        ? rawData.products
+        : Array.isArray(rawData?.data)
+        ? rawData.data
+        : [];
+
+      setProducts(productList);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching vendor products:', err);
+      setProducts([]); // fallback to empty array to prevent map crashes
     } finally {
       setLoading(false);
     }
@@ -102,7 +114,11 @@ export default function VendorDashboard() {
       {/* Add Product Form Section */}
       <div className="bg-white p-6 rounded-lg shadow-md border mb-10">
         <h2 className="text-xl font-semibold mb-4 text-indigo-600">Upload New Product</h2>
-        {msg && <p className="mb-4 text-sm font-medium text-green-600">{msg}</p>}
+        {msg && (
+          <p className={`mb-4 text-sm font-medium ${msg.includes('successfully') ? 'text-green-600' : 'text-red-600'}`}>
+            {msg}
+          </p>
+        )}
 
         <form onSubmit={handleAddProduct} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -186,7 +202,7 @@ export default function VendorDashboard() {
 
         {loading ? (
           <p>Loading products...</p>
-        ) : products.length === 0 ? (
+        ) : !Array.isArray(products) || products.length === 0 ? (
           <p className="text-gray-500">No products uploaded yet.</p>
         ) : (
           <div className="overflow-x-auto">
