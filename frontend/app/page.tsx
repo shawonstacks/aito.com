@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from 'react';
 import API from '../services/api';
-import Navbar from '../components/Navbar';
 import ProductCard from '../components/ProductCard';
 
 export default function HomePage() {
@@ -28,9 +27,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
-
+    <div className="bg-gray-50 flex flex-col">
       {/* Hero Banner Section */}
       <header className="bg-indigo-600 text-white py-12 px-4 sm:px-6 lg:px-8 text-center">
         <div className="max-w-4xl mx-auto">
@@ -64,11 +61,6 @@ export default function HomePage() {
           </div>
         )}
       </main>
-
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 py-6 text-center text-sm text-gray-500">
-        © {new Date().getFullYear()} MultiVendorHub. All rights reserved.
-      </footer>
     </div>
   );
 }

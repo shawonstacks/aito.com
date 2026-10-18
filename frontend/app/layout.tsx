@@ -1,6 +1,8 @@
 // frontend/app/layout.tsx
 import './globals.css';
 import { AuthProvider } from '../context/AuthContext';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
 export const metadata = {
   title: 'Multi-Vendor E-Commerce Platform',
@@ -14,9 +16,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className="flex flex-col min-h-screen">
         <AuthProvider>
-          {children}
+          <Navbar />
+          <main className="flex-grow">
+            {children}
+          </main>
+          <Footer />
         </AuthProvider>
       </body>
     </html>
