@@ -42,14 +42,14 @@ export default function Navbar() {
                 </span>
               </div>
 
-              {/* Vendor & Admin Action Buttons (Fixed with lowercase check) */}
-              {(user.role?.toLowerCase() === 'vendor') && (
+              {/* Vendor & Admin Action Buttons */}
+              {user.role?.toLowerCase() === 'vendor' && (
                 <Link href="/vendor/dashboard" className="text-xs bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-md hover:bg-indigo-100 transition">
                   Vendor Panel
                 </Link>
               )}
-              {(user.role?.toLowerCase() === 'admin') && (
-                <Link href="/admin/pending-shops" className="text-xs bg-amber-50 text-amber-600 px-3 py-1.5 rounded-md hover:bg-amber-100 transition">
+              {user.role?.toLowerCase() === 'admin' && (
+                <Link href="/admin/dashboard" className="text-xs bg-amber-50 text-amber-600 px-3 py-1.5 rounded-md hover:bg-amber-100 transition">
                   Admin Panel
                 </Link>
               )}
