@@ -1,15 +1,30 @@
 // frontend/app/login/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+  const router = useRouter();
+
+  // ইউজার ইতিমধ্যে লগইন করা থাকলে তাকে ড্যাশবোর্ড বা হোমপেজে পাঠিয়ে দেব
+  useEffect(() => {
+    if (user) {
+      if (user.role?.toLowerCase() === 'admin') {
+        router.push('/admin/dashboard');
+      } else if (user.role?.toLowerCase() === 'vendor') {
+        router.push('/vendor/dashboard');
+      } else {
+        router.push('/');
+      }
+    }
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
