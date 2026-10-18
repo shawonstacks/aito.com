@@ -15,16 +15,21 @@ const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Determine user role safely
+    let assignedRole = 'CUSTOMER';
+    if (role === 'VENDOR') assignedRole = 'VENDOR';
+    if (email === 'admin@aito.com') assignedRole = 'ADMIN';
+
     const user = await User.create({
       name,
       email,
       phone,
       password: hashedPassword,
-      role: role === 'VENDOR' ? 'VENDOR' : 'CUSTOMER'
+      role: assignedRole
     });
 
     let shop = null;
-    if (role === 'VENDOR' && shopName) {
+    if (assignedRole === 'VENDOR' && shopName) {
       const slug = shopName.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
       shop = await Shop.create({
         userId: user._id,
@@ -59,6 +64,12 @@ const login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    }
+
+    // Force ADMIN role for admin@aito.com if it somehow differs in DB
+    if (email === 'admin@aito.com' && user.role !== 'ADMIN') {
+      user.role = 'ADMIN';
+      await user.save();
     }
 
     let shop = null;
