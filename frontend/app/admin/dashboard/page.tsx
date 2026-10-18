@@ -1,120 +1,185 @@
+// frontend/app/admin/dashboard/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import axios from 'axios';
-
-interface Shop {
-  _id: string;
-  name: string;
-  status: string;
-  userId?: {
-    name: string;
-    email: string;
-    phone: string;
-  };
-}
+import API from '../../../services/api';
+import { 
+  Users, 
+  ShoppingBag, 
+  DollarSign, 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  ShieldAlert, 
+  LayoutDashboard,
+  Check,
+  X
+} from 'lucide-react';
 
 export default function AdminDashboard() {
-  const router = useRouter();
-  const [pendingShops, setPendingShops] = useState<Shop[]>([]);
+  const [activeTab, setActiveTab] = useState<'stats' | 'products' | 'users'>('stats');
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [msg, setMsg] = useState('');
+
+  // Stats Counters
+  const [stats, setStats] = useState({
+    totalUsers: 12,
+    totalVendors: 4,
+    totalSales: '৳45,200',
+    platformCommission: '৳9,040',
+  });
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userStr = localStorage.getItem('user');
+    fetchAdminData();
+  }, []);
 
-    if (!token || !userStr) {
-      router.push('/login');
-      return;
-    }
-
-    const user = JSON.parse(userStr);
-    if (user?.role !== 'ADMIN') {
-      router.push('/');
-      return;
-    }
-
-    fetchPendingShops(token);
-  }, [router]);
-
-  const fetchPendingShops = async (token: string) => {
+  const fetchAdminData = async () => {
     try {
-      const res = await axios.get('http://172.16.54.179:5000/api/admin/pending-shops', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setPendingShops(res.data.shops || []);
-    } catch (err) {
-      console.error('Failed to fetch pending shops', err);
+      const response = await API.get('/products');
+      if (response.data.success) {
+        setProducts(response.data.products);
+      }
+    } catch (error) {
+      console.error('Failed to fetch admin products:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdateStatus = async (shopId: string, status: 'APPROVED' | 'REJECTED') => {
-    const token = localStorage.getItem('token');
-    try {
-      await axios.patch(
-        `http://172.16.54.179:5000/api/admin/shop-status/${shopId}`,
-        { status },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setMsg(`Shop successfully ${status.toLowerCase()}!`);
-      if (token) fetchPendingShops(token);
-    } catch (err: any) {
-      setMsg(err.response?.data?.message || 'Failed to update shop status');
-    }
-  };
-
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Admin Dashboard - Pending Shops</h1>
-      
-      {msg && <p className="mb-4 text-sm font-medium text-green-600">{msg}</p>}
-
-      <div className="bg-white p-6 rounded-lg shadow-md border">
-        {loading ? (
-          <p>Loading pending shops...</p>
-        ) : pendingShops.length === 0 ? (
-          <p className="text-gray-500">No pending shops found.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Shop Name</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Vendor Name</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {pendingShops.map((shop) => (
-                  <tr key={shop._id}>
-                    <td className="px-4 py-2 text-sm font-medium text-gray-900">{shop.name}</td>
-                    <td className="px-4 py-2 text-sm text-gray-500">{shop.userId?.name || 'N/A'}</td>
-                    <td className="px-4 py-2 text-sm text-gray-500">{shop.userId?.email || 'N/A'}</td>
-                    <td className="px-4 py-2 text-sm space-x-2">
-                      <button
-                        onClick={() => handleUpdateStatus(shop._id, 'APPROVED')}
-                        className="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleUpdateStatus(shop._id, 'REJECTED')}
-                        className="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700"
-                      >
-                        Reject
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+          <div>
+            <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+              <LayoutDashboard className="w-7 h-7 text-amber-500" />
+              Super Admin Control Panel
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Manage software approvals, verified vendors, commission rates, and system overview.
+            </p>
           </div>
-        )}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveTab('stats')}
+              className={`px-4 py-2 text-xs font-semibold rounded-lg transition ${
+                activeTab === 'stats' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('products')}
+              className={`px-4 py-2 text-xs font-semibold rounded-lg transition ${
+                activeTab === 'products' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Product Approvals
+            </button>
+          </div>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+              <DollarSign className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500">Platform Earnings (20%)</p>
+              <h3 className="text-xl font-bold text-gray-900">{stats.platformCommission}</h3>
+            </div>
+          </div>
+
+          <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+              <ShoppingBag className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500">Total Software Sales</p>
+              <h3 className="text-xl font-bold text-gray-900">{stats.totalSales}</h3>
+            </div>
+          </div>
+
+          <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+              <Users className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500">Verified Vendors</p>
+              <h3 className="text-xl font-bold text-gray-900">{stats.totalVendors}</h3>
+            </div>
+          </div>
+
+          <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
+              <ShieldAlert className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500">Total Registered Users</p>
+              <h3 className="text-xl font-bold text-gray-900">{stats.totalUsers}</h3>
+            </div>
+          </div>
+        </div>
+
+        {/* Product Approval & Software Management Table */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-gray-900">Submitted Software & Scripts</h2>
+            <span className="text-xs font-semibold bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full">
+              {products.length} Products
+            </span>
+          </div>
+
+          {loading ? (
+            <div className="p-12 text-center text-gray-400">Loading products...</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-gray-600">
+                <thead className="bg-gray-50 text-xs text-gray-500 uppercase border-b border-gray-100">
+                  <tr>
+                    <th className="px-6 py-3.5">Software Title</th>
+                    <th className="px-6 py-3.5">Category</th>
+                    <th className="px-6 py-3.5">Price</th>
+                    <th className="px-6 py-3.5">Status</th>
+                    <th className="px-6 py-3.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {products.map((item) => (
+                    <tr key={item._id} className="hover:bg-gray-50/80 transition">
+                      <td className="px-6 py-4 font-semibold text-gray-900">
+                        {item.title || item.name}
+                      </td>
+                        <td className="px-6 py-4">
+                          <span className="text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-md font-medium">
+                            {item.category || 'Script'}
+                          </span>
+                        </td>
+                      <td className="px-6 py-4 font-bold text-indigo-600">৳{item.price}</td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-full">
+                          <CheckCircle className="w-3.5 h-3.5" /> Published
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right space-x-2">
+                        <button className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition shadow-sm">
+                          Approve
+                        </button>
+                        <button className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg transition">
+                          Reject
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
       </div>
     </div>
   );

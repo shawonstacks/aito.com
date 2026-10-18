@@ -1,234 +1,261 @@
+// frontend/app/vendor/dashboard/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import axios from 'axios';
-
-interface Product {
-  _id: string;
-  name: string;
-  price: number;
-  category: string;
-  stock: number;
-  description: string;
-}
+import API from '../../../services/api';
+import { 
+  PlusCircle, 
+  ShoppingBag, 
+  DollarSign, 
+  Code, 
+  ExternalLink, 
+  Upload, 
+  CheckCircle2,
+  TrendingUp
+} from 'lucide-react';
 
 export default function VendorDashboard() {
-  const router = useRouter();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Form states for adding product
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
-  const [category, setCategory] = useState('');
-  const [stock, setStock] = useState('');
-  const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [msg, setMsg] = useState('');
+  // New Software Upload Form State
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    price: '',
+    category: 'Web Application',
+    demoUrl: '',
+    image: '',
+  });
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userStr = localStorage.getItem('user');
-    
-    if (!token || !userStr) {
-      router.push('/login');
-      return;
-    }
+    fetchVendorProducts();
+  }, []);
 
-    const user = JSON.parse(userStr);
-    const userRole = user?.role ? String(user.role).toLowerCase() : '';
-
-    if (userRole !== 'vendor' && userRole !== 'shop') {
-      router.push('/');
-      return;
-    }
-
-    fetchVendorProducts(token);
-  }, [router]);
-
-  const fetchVendorProducts = async (token: string) => {
+  const fetchVendorProducts = async () => {
     try {
-      const res = await axios.get('http://172.16.54.179:5000/api/products/my-products', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      // safe parsing: array, { products: [] }, or { data: [] }
-      const rawData = res.data;
-      const productList = Array.isArray(rawData)
-        ? rawData
-        : Array.isArray(rawData?.products)
-        ? rawData.products
-        : Array.isArray(rawData?.data)
-        ? rawData.data
-        : [];
-
-      setProducts(productList);
-    } catch (err) {
-      console.error('Error fetching vendor products:', err);
-      setProducts([]); // fallback to empty array to prevent map crashes
+      const response = await API.get('/products');
+      if (response.data.success) {
+        setProducts(response.data.products);
+      }
+    } catch (error) {
+      console.error('Failed to fetch vendor products:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddProduct = async (e: React.FormEvent) => {
+  const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    setMsg('');
-    const token = localStorage.getItem('token');
+    setSubmitting(true);
 
     try {
-      await axios.post(
-        'http://172.16.54.179:5000/api/products',
-        {
-          name,
-          price: Number(price),
-          category,
-          stock: Number(stock),
-          description,
-          images: imageUrl ? [imageUrl] : []
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        price: Number(formData.price),
+        category: formData.category,
+        image: formData.image || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c',
+      };
 
-      setMsg('Product added successfully!');
-      setName('');
-      setPrice('');
-      setCategory('');
-      setStock('');
-      setDescription('');
-      setImageUrl('');
-      
-      if (token) fetchVendorProducts(token);
-    } catch (err: any) {
-      setMsg(err.response?.data?.message || 'Failed to add product');
+      const response = await API.post('/products', payload);
+      if (response.data.success) {
+        alert('🎉 Software Uploaded Successfully!');
+        setShowAddModal(false);
+        setFormData({ title: '', description: '', price: '', category: 'Web Application', demoUrl: '', image: '' });
+        fetchVendorProducts();
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Failed to upload software.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Vendor Dashboard</h1>
-
-      {/* Add Product Form Section */}
-      <div className="bg-white p-6 rounded-lg shadow-md border mb-10">
-        <h2 className="text-xl font-semibold mb-4 text-indigo-600">Upload New Product</h2>
-        {msg && (
-          <p className={`mb-4 text-sm font-medium ${msg.includes('successfully') ? 'text-green-600' : 'text-red-600'}`}>
-            {msg}
-          </p>
-        )}
-
-        <form onSubmit={handleAddProduct} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Product Name</label>
-            <input
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full mt-1 p-2 border rounded-md"
-            />
+            <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-2">
+              <Code className="w-7 h-7 text-indigo-600" />
+              Developer & Vendor Portal
+            </h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Upload new software, track earnings, and manage client orders.
+            </p>
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Price ($)</label>
-            <input
-              type="number"
-              required
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className="w-full mt-1 p-2 border rounded-md"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Category</label>
-            <input
-              type="text"
-              required
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full mt-1 p-2 border rounded-md"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Stock Quantity</label>
-            <input
-              type="number"
-              required
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
-              className="w-full mt-1 p-2 border rounded-md"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700">Image URL</label>
-            <input
-              type="text"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://images.unsplash.com/photo-1505740420928-5e560c06d30e"
-              className="w-full mt-1 p-2 border rounded-md"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700">Description</label>
-            <textarea
-              required
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full mt-1 p-2 border rounded-md"
-            ></textarea>
-          </div>
-
           <button
-            type="submit"
-            className="md:col-span-2 bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition"
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-3 rounded-xl transition shadow-sm text-sm"
           >
-            Add Product
+            <PlusCircle className="w-4 h-4" />
+            Upload New Software
           </button>
-        </form>
-      </div>
+        </div>
 
-      {/* Uploaded Products List Table */}
-      <div className="bg-white p-6 rounded-lg shadow-md border">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">My Uploaded Products</h2>
-
-        {loading ? (
-          <p>Loading products...</p>
-        ) : !Array.isArray(products) || products.length === 0 ? (
-          <p className="text-gray-500">No products uploaded yet.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {products.map((p) => (
-                  <tr key={p._id}>
-                    <td className="px-4 py-2 text-sm font-medium text-gray-900">{p.name}</td>
-                    <td className="px-4 py-2 text-sm text-gray-500">{p.category}</td>
-                    <td className="px-4 py-2 text-sm text-gray-500">${p.price}</td>
-                    <td className="px-4 py-2 text-sm text-gray-500">{p.stock}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Vendor Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+          <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+              <DollarSign className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500">Total Net Earnings</p>
+              <h3 className="text-xl font-bold text-gray-900">৳32,400</h3>
+            </div>
           </div>
-        )}
+
+          <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+              <ShoppingBag className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500">Listed Products</p>
+              <h3 className="text-xl font-bold text-gray-900">{products.length} Items</h3>
+            </div>
+          </div>
+
+          <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+              <TrendingUp className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500">Successful Sales</p>
+              <h3 className="text-xl font-bold text-gray-900">18 Orders</h3>
+            </div>
+          </div>
+        </div>
+
+        {/* My Software Items Grid */}
+        <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm space-y-6">
+          <h2 className="text-lg font-bold text-gray-900">My Uploaded Software & Scripts</h2>
+
+          {loading ? (
+            <div className="py-12 text-center text-gray-400">Loading your software list...</div>
+          ) : products.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {products.map((item) => (
+                <div key={item._id} className="border border-gray-200 rounded-xl p-4 flex flex-col justify-between space-y-3 hover:border-indigo-200 transition">
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-full uppercase">
+                      {item.category || 'Script'}
+                    </span>
+                    <h3 className="font-bold text-gray-900 line-clamp-1">{item.title || item.name}</h3>
+                    <p className="text-xs text-gray-500 line-clamp-2">{item.description}</p>
+                  </div>
+                  <div className="flex items-center justify-between border-t pt-3">
+                    <span className="font-extrabold text-indigo-600">৳{item.price}</span>
+                    <span className="flex items-center gap-1 text-[11px] text-emerald-600 font-semibold">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> Active
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-gray-500 text-sm">
+              No software listed yet. Click "Upload New Software" to start selling!
+            </div>
+          )}
+        </div>
+
       </div>
+
+      {/* Upload Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-6 shadow-2xl relative">
+            <h3 className="text-xl font-bold text-gray-900 border-b pb-3">Upload Software or Source Code</h3>
+
+            <form onSubmit={handleCreateProduct} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Software Title *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g., POS SaaS Web Application"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500 outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Price (BDT) *</label>
+                  <input
+                    type="number"
+                    required
+                    placeholder="1500"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    className="w-full p-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Category</label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full p-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  >
+                    <option value="Web Application">Web Application</option>
+                    <option value="PHP Script">PHP Script</option>
+                    <option value="Mobile Source Code">Mobile Source Code</option>
+                    <option value="WordPress Plugin">WordPress Plugin</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Thumbnail / Preview Image URL</label>
+                <input
+                  type="text"
+                  placeholder="https://example.com/image.png"
+                  value={formData.image}
+                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Description *</label>
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="Key features, tech stack, and documentation notes..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500 outline-none"
+                ></textarea>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded-lg transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-5 py-2 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition shadow-sm"
+                >
+                  {submitting ? 'Uploading...' : 'Publish Software'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
