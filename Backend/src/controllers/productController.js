@@ -5,7 +5,14 @@ const Shop = require('../models/Shop');
 // ১. ভেন্ডর কর্তৃক নতুন প্রোডাক্ট তৈরি (Create Product)
 const createProduct = async (req, res) => {
   try {
-    const { title, description, price, comparePrice, stock, images, category } = req.body;
+    const { title, name, description, price, comparePrice, stock, images, image, category } = req.body;
+
+    // name বা title যেকোনো একটি গ্রহণ করা
+    const productTitle = title || name;
+
+    if (!productTitle) {
+      return res.status(400).json({ success: false, message: 'Product title or name is required' });
+    }
 
     // ভেন্ডরের নিজস্ব শপ আছে কি না এবং সেটি অনুমোদিত কি না চেক করা
     const shop = await Shop.findOne({ userId: req.user.id });
@@ -17,18 +24,21 @@ const createProduct = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Your shop is not approved by admin yet to sell products' });
     }
 
-    // ইউনিক স্লাগ জেনারেট করা
-    const slug = title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '') + '-' + Date.now();
+    // ইউনিক স্লাগ জেনারেট করা (নিরাপদভাবে)
+    const slug = productTitle.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '') + '-' + Date.now();
+
+    // images অ্যারে অথবা সিঙ্গেল image URL হ্যান্ডেল করা
+    const productImages = images || (image ? [image] : []);
 
     const product = await Product.create({
       shopId: shop._id,
-      title,
+      title: productTitle,
       slug,
       description,
       price,
       comparePrice,
       stock,
-      images,
+      images: productImages,
       category
     });
 
