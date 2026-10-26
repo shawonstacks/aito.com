@@ -7,7 +7,7 @@ import { Code, Phone, Mail, MapPin, MessageCircle, ShieldCheck, Download, Headph
 export default function Footer() {
   // আপনার হোয়াটসঅ্যাপ নম্বর (কান্ট্রি কোড সহ, যেমন: 8801XXXXXXXXX)
   const whatsappNumber = '8801700000000'; 
-  const defaultMessage = encodeURIComponent('Hello aito.com Team! I need support regarding a software product.');
+  const defaultMessage = encodeURIComponent('Hello aito Team! I need support regarding a software product.');
 
   return (
     <footer className="bg-gray-900 text-gray-300 relative pt-12 pb-8 mt-20 border-t border-gray-800">
@@ -46,7 +46,7 @@ export default function Footer() {
             <Link href="/" className="flex items-center gap-2">
               <Code className="w-7 h-7 text-indigo-500" />
               <span className="font-bold text-xl text-white tracking-tight">
-                aito<span className="text-indigo-500">.com</span>
+                aito
               </span>
             </Link>
             <p className="text-gray-400 text-xs leading-relaxed max-w-sm">
@@ -103,7 +103,7 @@ export default function Footer() {
 
         {/* Copyright Bar */}
         <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-500">
-          <p>© 2026 aito.com - Software & Code Marketplace. All rights reserved.</p>
+          <p>© 2026 aito - Software & Code Marketplace. All rights reserved.</p>
           <div className="flex gap-4">
             <a href="#" className="hover:text-gray-400">Terms</a>
             <a href="#" className="hover:text-gray-400">Privacy</a>
@@ -119,7 +119,7 @@ export default function Footer() {
         target="_blank"
         rel="noopener noreferrer"
         className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white p-3.5 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 z-50 flex items-center justify-center gap-2 group"
-        title="Chat with aito.com support on WhatsApp"
+        title="Chat with aito support on WhatsApp"
       >
         <MessageCircle className="w-6 h-6 fill-current" />
         <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-300 text-xs font-semibold pr-1">

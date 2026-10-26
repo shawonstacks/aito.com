@@ -19,7 +19,7 @@ export default function Navbar() {
           <Link href="/" className="flex items-center gap-2 shrink-0">
             <Code className="w-7 h-7 text-indigo-600" />
             <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-gray-900">
-              aito<span className="text-indigo-600">.com</span>
+              aito
             </span>
           </Link>
 

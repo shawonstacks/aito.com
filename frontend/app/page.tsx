@@ -42,7 +42,7 @@ export default function HomePage() {
           </h1>
 
           <p className="text-gray-300 text-xs sm:text-lg max-w-2xl mx-auto leading-relaxed">
-            Buy original Web Apps, Mobile Source Code, SaaS Tools, and Scripts directly from verified software developers on <span className="text-indigo-400 font-semibold">aito.com</span>.
+            Buy original Web Apps, Mobile Source Code, SaaS Tools, and Scripts directly from verified software developers on <span className="text-indigo-400 font-semibold">aito</span>.
           </p>
 
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6 pt-2 text-xs font-medium text-gray-400">

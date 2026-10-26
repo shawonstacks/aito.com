@@ -5,8 +5,8 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 export const metadata = {
-  title: 'Multi-Vendor E-Commerce Platform',
-  description: 'Shop best products from top vendors',
+  title: 'aito',
+  description: 'aito marketplace for verified software and digital products',
 };
 
 export default function RootLayout({
