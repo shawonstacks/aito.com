@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
-import { Code, ShoppingBag, User, LogOut, LayoutDashboard, Menu, X } from 'lucide-react';
+import { ShoppingBag, User, LogOut, LayoutDashboard, Menu, X } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -16,11 +16,8 @@ export default function Navbar() {
         <div className="flex justify-between h-16 items-center">
           
           {/* Logo / Brand Name */}
-          <Link href="/" className="flex items-center gap-2 shrink-0">
-            <Code className="w-7 h-7 text-indigo-600" />
-            <span className="font-extrabold text-xl sm:text-2xl tracking-tight text-gray-900">
-              aito
-            </span>
+          <Link href="/" className="flex items-center shrink-0">
+            <img src="/eito-saaslogo-900.png" alt="eito logo" className="h-10 sm:h-12 w-auto object-contain" />
           </Link>
 
           {/* Desktop Navigation */}

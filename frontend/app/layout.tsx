@@ -5,8 +5,11 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 export const metadata = {
-  title: 'aito',
-  description: 'aito marketplace for verified software and digital products',
+  title: 'eito',
+  description: 'eito marketplace for verified software and digital products',
+  icons: {
+    icon: '/eito-saaslogo-900.png',
+  },
 };
 
 export default function RootLayout({

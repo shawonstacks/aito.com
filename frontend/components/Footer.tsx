@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Code, Phone, Mail, MapPin, MessageCircle, ShieldCheck, Download, Headphones } from 'lucide-react';
+import { Phone, Mail, MapPin, MessageCircle, ShieldCheck, Download, Headphones } from 'lucide-react';
 
 export default function Footer() {
   // আপনার হোয়াটসঅ্যাপ নম্বর (কান্ট্রি কোড সহ, যেমন: 8801XXXXXXXXX)
@@ -43,11 +43,8 @@ export default function Footer() {
           
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
-            <Link href="/" className="flex items-center gap-2">
-              <Code className="w-7 h-7 text-indigo-500" />
-              <span className="font-bold text-xl text-white tracking-tight">
-                aito
-              </span>
+            <Link href="/" className="flex items-center">
+              <img src="/eito-saaslogo-900.png" alt="eito logo" className="h-12 w-auto object-contain" />
             </Link>
             <p className="text-gray-400 text-xs leading-relaxed max-w-sm">
               The premier marketplace for premium software solutions, Web Applications, Mobile Apps, SaaS Platforms, and Developer Tools.
