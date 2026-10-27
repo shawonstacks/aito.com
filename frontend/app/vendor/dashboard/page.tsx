@@ -26,7 +26,7 @@ export default function VendorDashboard() {
     description: '',
     price: '',
     category: 'Web Application',
-    demoUrl: '',
+    demoVideo: '',
     image: '',
   });
 
@@ -59,13 +59,14 @@ export default function VendorDashboard() {
         price: Number(formData.price),
         category: formData.category,
         image: formData.image || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c',
+        demoVideo: formData.demoVideo || '',
       };
 
       const response = await API.post('/products', payload);
       if (response.data.success) {
         alert('🎉 Software Uploaded Successfully!');
         setShowAddModal(false);
-        setFormData({ title: '', description: '', price: '', category: 'Web Application', demoUrl: '', image: '' });
+        setFormData({ title: '', description: '', price: '', category: 'Web Application', demoVideo: '', image: '' });
         fetchVendorProducts();
       }
     } catch (error: any) {
@@ -220,6 +221,17 @@ export default function VendorDashboard() {
                   placeholder="https://example.com/image.png"
                   value={formData.image}
                   onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                  className="w-full p-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">Demo Video URL (YouTube / MP4 / Vimeo)</label>
+                <input
+                  type="text"
+                  placeholder="https://www.youtube.com/watch?v=... or https://example.com/demo.mp4"
+                  value={formData.demoVideo}
+                  onChange={(e) => setFormData({ ...formData, demoVideo: e.target.value })}
                   className="w-full p-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
               </div>

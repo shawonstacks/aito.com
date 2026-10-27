@@ -4,7 +4,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Navbar from '../../components/Navbar';
 import { useAuth } from '../../context/AuthContext';
 import { Store, User, Mail, Lock, Phone } from 'lucide-react';
 
@@ -41,8 +40,6 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
-
       <div className="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
           <div className="text-center mb-6">

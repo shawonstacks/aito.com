@@ -32,13 +32,8 @@ export default function HomePage() {
       {/* Software Marketplace Hero Banner */}
       <header className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white py-12 sm:py-16 px-4 sm:px-6 lg:px-8 text-center border-b border-indigo-900/50 w-full">
         <div className="max-w-4xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-[11px] sm:text-xs font-semibold px-3 py-1.5 rounded-full mb-1 backdrop-blur-sm max-w-full">
-            <Cpu className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-            <span className="truncate">Premium Software & Web Script Marketplace</span>
-          </div>
-
           <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
-            Discover Verified Software & Source Codes
+            One Smart SaaS Platform. A Simpler Life
           </h1>
 
           <p className="text-gray-300 text-xs sm:text-lg max-w-2xl mx-auto leading-relaxed">

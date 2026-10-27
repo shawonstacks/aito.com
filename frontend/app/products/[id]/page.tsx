@@ -25,6 +25,27 @@ export default function ProductDetailPage() {
     phone: '',
   });
 
+  const getVideoEmbedUrl = (url: string) => {
+    if (!url) return '';
+
+    if (url.includes('youtube.com/watch?v=')) {
+      const videoId = new URL(url).searchParams.get('v');
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+    }
+
+    if (url.includes('youtu.be/')) {
+      const videoId = url.split('youtu.be/')[1]?.split('?')[0];
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+    }
+
+    if (url.includes('vimeo.com/')) {
+      const videoId = url.split('vimeo.com/')[1]?.split('?')[0];
+      return videoId ? `https://player.vimeo.com/video/${videoId}` : '';
+    }
+
+    return url;
+  };
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -112,10 +133,18 @@ export default function ProductDetailPage() {
       </Link>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10 bg-white p-6 sm:p-8 rounded-2xl border border-gray-200 shadow-sm">
-        {/* Left: Product Image */}
+        {/* Left: Product Image / Video */}
         <div className="space-y-4">
           <div className="relative w-full h-80 sm:h-96 bg-gray-100 rounded-xl overflow-hidden border border-gray-200 flex items-center justify-center">
-            {product.images && product.images.length > 0 ? (
+            {product.demoVideo ? (
+              <iframe
+                src={getVideoEmbedUrl(product.demoVideo)}
+                title={`${product.title || product.name} demo video`}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : product.images && product.images.length > 0 ? (
               <img
                 src={product.images[0]}
                 alt={product.title}
@@ -138,6 +167,12 @@ export default function ProductDetailPage() {
               {product.category || 'Software'}
             </span>
           </div>
+
+          {product.demoVideo && (
+            <div className="rounded-xl border border-indigo-100 bg-indigo-50 px-3 py-2 text-xs text-indigo-700 font-medium">
+              Demo video is available before purchase. Watch it to review the product before buying.
+            </div>
+          )}
         </div>
 
         {/* Right: Product Details */}

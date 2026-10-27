@@ -14,6 +14,7 @@ const productSchema = new mongoose.Schema({
   comparePrice: { type: Number, default: 0 }, // ডিসকাউন্ট প্রাইসের জন্য
   stock: { type: Number, required: true, default: 0 },
   images: [{ type: String }], // প্রোডাক্টের ছবির URL গুলোর অ্যারে
+  demoVideo: { type: String, default: '' }, // Vendor demo video URL (YouTube, Vimeo, direct MP4)
   category: { type: String, required: true },
   status: { 
     type: String, 

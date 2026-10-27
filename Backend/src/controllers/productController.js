@@ -5,7 +5,7 @@ const Shop = require('../models/Shop');
 // ১. ভেন্ডর কর্তৃক নতুন প্রোডাক্ট তৈরি (Create Product)
 const createProduct = async (req, res) => {
   try {
-    const { title, name, description, price, comparePrice, stock, images, image, category } = req.body;
+    const { title, name, description, price, comparePrice, stock, images, image, demoVideo, category } = req.body;
 
     // name বা title যেকোনো একটি গ্রহণ করা
     const productTitle = title || name;
@@ -39,6 +39,7 @@ const createProduct = async (req, res) => {
       comparePrice,
       stock,
       images: productImages,
+      demoVideo: demoVideo || '',
       category
     });
 
@@ -66,7 +67,24 @@ const getAllProducts = async (req, res) => {
   }
 };
 
-// ৩. নির্দিষ্ট ভেন্ডরের নিজের প্রোডাক্টগুলো দেখা
+// ৩. নির্দিষ্ট প্রোডাক্ট দেখা
+const getProductById = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id).populate('shopId', 'shopName slug logo');
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    res.status(200).json({
+      success: true,
+      product
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ৪. নির্দিষ্ট ভেন্ডরের নিজের প্রোডাক্টগুলো দেখা
 const getVendorProducts = async (req, res) => {
   try {
     const shop = await Shop.findOne({ userId: req.user.id });
@@ -85,4 +103,4 @@ const getVendorProducts = async (req, res) => {
   }
 };
 
-module.exports = { createProduct, getAllProducts, getVendorProducts };
+module.exports = { createProduct, getAllProducts, getProductById, getVendorProducts };
