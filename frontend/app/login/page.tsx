@@ -10,6 +10,7 @@ import { Mail, Lock } from 'lucide-react';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const { login, user } = useAuth();
   const router = useRouter();
 
@@ -28,7 +29,13 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password);
+    setError('');
+
+    try {
+      await login(email, password);
+    } catch (err: any) {
+      setError(err.message || 'Login failed. Please try again.');
+    }
   };
 
   return (
@@ -40,6 +47,12 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-semibold text-gray-700 uppercase mb-1">
               Email Address

@@ -36,12 +36,13 @@ export default function VendorDashboard() {
 
   const fetchVendorProducts = async () => {
     try {
-      const response = await API.get('/products');
+      const response = await API.get('/products/my-products');
       if (response.data.success) {
-        setProducts(response.data.products);
+        setProducts(response.data.products || []);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch vendor products:', error);
+      alert(error.response?.data?.message || 'Failed to load your products. Please log in again.');
     } finally {
       setLoading(false);
     }

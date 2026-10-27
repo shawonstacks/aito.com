@@ -19,24 +19,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const response = await API.post('/auth/login', { email, password });
-    if (response.data.success) {
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      setUser(user);
-      return response.data;
+    try {
+      const response = await API.post('/auth/login', { email, password });
+      if (response.data.success) {
+        const { token, user } = response.data;
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        setUser(user);
+        return response.data;
+      }
+      throw new Error(response.data.message || 'Login failed');
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || error.message || 'Login failed');
     }
   };
 
   const register = async (userData: any) => {
-    const response = await API.post('/auth/register', userData);
-    if (response.data.success) {
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      setUser(user);
-      return response.data;
+    try {
+      const response = await API.post('/auth/register', userData);
+      if (response.data.success) {
+        const { token, user } = response.data;
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        setUser(user);
+        return response.data;
+      }
+      throw new Error(response.data.message || 'Registration failed');
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || error.message || 'Registration failed');
     }
   };
 

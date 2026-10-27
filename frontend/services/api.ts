@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
 });
 
 // প্রতিটি রিকোয়েস্টে অটোমেটিক টোকেন যুক্ত করা

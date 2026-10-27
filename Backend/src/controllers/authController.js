@@ -3,12 +3,17 @@ const User = require('../models/User');
 const Shop = require('../models/Shop');
 const { generateToken } = require('../utils/jwt');
 
+const adminEmails = new Set(['admin@aito.com', 'admin@eito.com', 'admin@eito-saas.com', 'admin@eito.com']);
+
 // Register User (Customer or Vendor)
 const register = async (req, res) => {
   try {
     const { name, email, phone, password, role, shopName } = req.body;
+    const normalizedEmail = String(email || '').trim().toLowerCase();
 
-    const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
+    const existingUser = await User.findOne({
+      $or: [{ email: { $regex: new RegExp(`^${normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } }, { phone }]
+    });
     if (existingUser) {
       return res.status(400).json({ success: false, message: 'Email or phone already registered' });
     }
@@ -18,11 +23,11 @@ const register = async (req, res) => {
     // Determine user role safely
     let assignedRole = 'CUSTOMER';
     if (role === 'VENDOR') assignedRole = 'VENDOR';
-    if (email === 'admin@aito.com') assignedRole = 'ADMIN';
+    if (adminEmails.has(normalizedEmail)) assignedRole = 'ADMIN';
 
     const user = await User.create({
       name,
-      email,
+      email: normalizedEmail,
       phone,
       password: hashedPassword,
       role: assignedRole
@@ -55,8 +60,11 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = String(email || '').trim().toLowerCase();
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({
+      email: { $regex: new RegExp(`^${normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }
+    });
     if (!user) {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
@@ -66,9 +74,10 @@ const login = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid email or password' });
     }
 
-    // Force ADMIN role for admin@aito.com if it somehow differs in DB
-    if (email === 'admin@aito.com' && user.role !== 'ADMIN') {
+    // Auto-promote admin emails to ADMIN role if needed
+    if (adminEmails.has(normalizedEmail) && user.role !== 'ADMIN') {
       user.role = 'ADMIN';
+      user.email = normalizedEmail;
       await user.save();
     }
 
