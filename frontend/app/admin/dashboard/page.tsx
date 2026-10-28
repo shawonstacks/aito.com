@@ -25,10 +25,10 @@ export default function AdminDashboard() {
 
   // Stats Counters
   const [stats, setStats] = useState({
-    totalUsers: 12,
-    totalVendors: 4,
-    totalSales: '৳45,200',
-    platformCommission: '৳9,040',
+    totalUsers: 0,
+    totalVendors: 0,
+    totalSales: 0,
+    platformCommission: 0,
   });
 
   useEffect(() => {
@@ -37,10 +37,20 @@ export default function AdminDashboard() {
 
   const fetchAdminData = async () => {
     try {
-      const [productsRes, shopsRes] = await Promise.all([
+      const [statsRes, productsRes, shopsRes] = await Promise.all([
+        API.get('/admin/stats'),
         API.get('/products'),
         API.get('/admin/pending-shops'),
       ]);
+
+      if (statsRes.data.success) {
+        setStats({
+          totalUsers: statsRes.data.stats.totalUsers || 0,
+          totalVendors: statsRes.data.stats.totalVendors || 0,
+          totalSales: statsRes.data.stats.totalSales || 0,
+          platformCommission: statsRes.data.stats.platformCommission || 0,
+        });
+      }
 
       if (productsRes.data.success) {
         setProducts(productsRes.data.products || []);
@@ -54,6 +64,10 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleStatCardClick = (targetTab: 'stats' | 'products' | 'users') => {
+    setActiveTab(targetTab);
   };
 
   const handleApproveShop = async (shopId: string) => {
@@ -113,27 +127,39 @@ export default function AdminDashboard() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => handleStatCardClick('products')}
+            className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4 text-left hover:border-indigo-200 hover:shadow-md transition cursor-pointer"
+          >
             <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
               <DollarSign className="w-6 h-6" />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500">Platform Earnings (20%)</p>
-              <h3 className="text-xl font-bold text-gray-900">{stats.platformCommission}</h3>
+              <h3 className="text-xl font-bold text-gray-900">৳{Number(stats.platformCommission || 0).toLocaleString()}</h3>
             </div>
-          </div>
+          </button>
 
-          <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => handleStatCardClick('products')}
+            className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4 text-left hover:border-emerald-200 hover:shadow-md transition cursor-pointer"
+          >
             <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
               <ShoppingBag className="w-6 h-6" />
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500">Total Software Sales</p>
-              <h3 className="text-xl font-bold text-gray-900">{stats.totalSales}</h3>
+              <h3 className="text-xl font-bold text-gray-900">৳{Number(stats.totalSales || 0).toLocaleString()}</h3>
             </div>
-          </div>
+          </button>
 
-          <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => handleStatCardClick('users')}
+            className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4 text-left hover:border-amber-200 hover:shadow-md transition cursor-pointer"
+          >
             <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
               <Users className="w-6 h-6" />
             </div>
@@ -141,9 +167,13 @@ export default function AdminDashboard() {
               <p className="text-xs font-medium text-gray-500">Verified Vendors</p>
               <h3 className="text-xl font-bold text-gray-900">{stats.totalVendors}</h3>
             </div>
-          </div>
+          </button>
 
-          <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4">
+          <button
+            type="button"
+            onClick={() => handleStatCardClick('users')}
+            className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm flex items-center gap-4 text-left hover:border-purple-200 hover:shadow-md transition cursor-pointer"
+          >
             <div className="p-3 bg-purple-50 text-purple-600 rounded-xl">
               <ShieldAlert className="w-6 h-6" />
             </div>
@@ -151,7 +181,7 @@ export default function AdminDashboard() {
               <p className="text-xs font-medium text-gray-500">Total Registered Users</p>
               <h3 className="text-xl font-bold text-gray-900">{stats.totalUsers}</h3>
             </div>
-          </div>
+          </button>
         </div>
 
         {activeTab === 'users' && (

@@ -1,6 +1,34 @@
 // src/controllers/adminController.js
 const Shop = require('../models/Shop');
 const User = require('../models/User');
+const Product = require('../models/Product');
+
+const getDashboardStats = async (req, res) => {
+  try {
+    const [totalUsers, verifiedVendors, salesSummary] = await Promise.all([
+      User.countDocuments(),
+      Shop.countDocuments({ status: 'APPROVED' }),
+      Product.aggregate([
+        { $group: { _id: null, totalSales: { $sum: '$price' } } }
+      ])
+    ]);
+
+    const totalSales = salesSummary[0]?.totalSales || 0;
+    const platformCommission = totalSales * 0.2;
+
+    res.status(200).json({
+      success: true,
+      stats: {
+        totalUsers,
+        totalVendors: verifiedVendors,
+        totalSales,
+        platformCommission
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 // ১. সমস্ত পেন্ডিং শপ বা ভেন্ডর লিস্ট দেখা (যাদের অ্যাডমিন এখনো অ্যাপ্রুভ করেনি)
 const getPendingShops = async (req, res) => {
@@ -58,4 +86,4 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-module.exports = { getPendingShops, updateShopStatus, getAllUsers };
+module.exports = { getPendingShops, updateShopStatus, getAllUsers, getDashboardStats };
