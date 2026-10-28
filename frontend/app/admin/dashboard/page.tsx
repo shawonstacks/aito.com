@@ -19,7 +19,9 @@ import {
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'stats' | 'products' | 'users'>('stats');
   const [products, setProducts] = useState<any[]>([]);
+  const [shops, setShops] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [approvingShopId, setApprovingShopId] = useState<string | null>(null);
 
   // Stats Counters
   const [stats, setStats] = useState({
@@ -35,14 +37,34 @@ export default function AdminDashboard() {
 
   const fetchAdminData = async () => {
     try {
-      const response = await API.get('/products');
-      if (response.data.success) {
-        setProducts(response.data.products);
+      const [productsRes, shopsRes] = await Promise.all([
+        API.get('/products'),
+        API.get('/admin/pending-shops'),
+      ]);
+
+      if (productsRes.data.success) {
+        setProducts(productsRes.data.products || []);
+      }
+
+      if (shopsRes.data.success) {
+        setShops(shopsRes.data.shops || []);
       }
     } catch (error) {
-      console.error('Failed to fetch admin products:', error);
+      console.error('Failed to fetch admin data:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleApproveShop = async (shopId: string) => {
+    try {
+      setApprovingShopId(shopId);
+      await API.patch(`/admin/shop-status/${shopId}`, { status: 'APPROVED' });
+      await fetchAdminData();
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Failed to approve shop.');
+    } finally {
+      setApprovingShopId(null);
     }
   };
 
@@ -77,6 +99,14 @@ export default function AdminDashboard() {
               }`}
             >
               Product Approvals
+            </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`px-4 py-2 text-xs font-semibold rounded-lg transition ${
+                activeTab === 'users' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Vendor Approvals
             </button>
           </div>
         </div>
@@ -124,61 +154,116 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Product Approval & Software Management Table */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900">Submitted Software & Scripts</h2>
-            <span className="text-xs font-semibold bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full">
-              {products.length} Products
-            </span>
-          </div>
+        {activeTab === 'users' && (
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900">Pending Vendor Shops</h2>
+              <span className="text-xs font-semibold bg-amber-50 text-amber-700 px-3 py-1 rounded-full">
+                {shops.length} Requests
+              </span>
+            </div>
 
-          {loading ? (
-            <div className="p-12 text-center text-gray-400">Loading products...</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-gray-600">
-                <thead className="bg-gray-50 text-xs text-gray-500 uppercase border-b border-gray-100">
-                  <tr>
-                    <th className="px-6 py-3.5">Software Title</th>
-                    <th className="px-6 py-3.5">Category</th>
-                    <th className="px-6 py-3.5">Price</th>
-                    <th className="px-6 py-3.5">Status</th>
-                    <th className="px-6 py-3.5 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {products.map((item) => (
-                    <tr key={item._id} className="hover:bg-gray-50/80 transition">
-                      <td className="px-6 py-4 font-semibold text-gray-900">
-                        {item.title || item.name}
-                      </td>
+            {loading ? (
+              <div className="p-12 text-center text-gray-400">Loading vendor requests...</div>
+            ) : shops.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-gray-600">
+                  <thead className="bg-gray-50 text-xs text-gray-500 uppercase border-b border-gray-100">
+                    <tr>
+                      <th className="px-6 py-3.5">Vendor</th>
+                      <th className="px-6 py-3.5">Shop</th>
+                      <th className="px-6 py-3.5">Email</th>
+                      <th className="px-6 py-3.5">Status</th>
+                      <th className="px-6 py-3.5 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {shops.map((shop) => (
+                      <tr key={shop._id} className="hover:bg-gray-50/80 transition">
+                        <td className="px-6 py-4 font-semibold text-gray-900">{shop.userId?.name || 'Vendor'}</td>
+                        <td className="px-6 py-4">{shop.shopName}</td>
+                        <td className="px-6 py-4">{shop.userId?.email || '-'}</td>
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full">
+                            <Clock className="w-3.5 h-3.5" /> Pending
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => handleApproveShop(shop._id)}
+                            disabled={approvingShopId === shop._id}
+                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white text-xs font-semibold rounded-lg transition shadow-sm"
+                          >
+                            {approvingShopId === shop._id ? 'Approving...' : 'Approve'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-12 text-center text-gray-400">No pending vendor requests right now.</div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'products' && (
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900">Submitted Software & Scripts</h2>
+              <span className="text-xs font-semibold bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full">
+                {products.length} Products
+              </span>
+            </div>
+
+            {loading ? (
+              <div className="p-12 text-center text-gray-400">Loading products...</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-gray-600">
+                  <thead className="bg-gray-50 text-xs text-gray-500 uppercase border-b border-gray-100">
+                    <tr>
+                      <th className="px-6 py-3.5">Software Title</th>
+                      <th className="px-6 py-3.5">Category</th>
+                      <th className="px-6 py-3.5">Price</th>
+                      <th className="px-6 py-3.5">Status</th>
+                      <th className="px-6 py-3.5 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {products.map((item) => (
+                      <tr key={item._id} className="hover:bg-gray-50/80 transition">
+                        <td className="px-6 py-4 font-semibold text-gray-900">
+                          {item.title || item.name}
+                        </td>
                         <td className="px-6 py-4">
                           <span className="text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-md font-medium">
                             {item.category || 'Script'}
                           </span>
                         </td>
-                      <td className="px-6 py-4 font-bold text-indigo-600">৳{item.price}</td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-full">
-                          <CheckCircle className="w-3.5 h-3.5" /> Published
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right space-x-2">
-                        <button className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition shadow-sm">
-                          Approve
-                        </button>
-                        <button className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg transition">
-                          Reject
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                        <td className="px-6 py-4 font-bold text-indigo-600">৳{item.price}</td>
+                        <td className="px-6 py-4">
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-full">
+                            <CheckCircle className="w-3.5 h-3.5" /> Published
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right space-x-2">
+                          <button className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition shadow-sm">
+                            Approve
+                          </button>
+                          <button className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg transition">
+                            Reject
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
 
       </div>
     </div>
