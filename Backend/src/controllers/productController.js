@@ -2,6 +2,31 @@
 const Product = require('../models/Product');
 const Shop = require('../models/Shop');
 
+const deleteProduct = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    if (req.user.role === 'VENDOR') {
+      const shop = await Shop.findOne({ userId: req.user.id });
+      if (!shop || product.shopId.toString() !== shop._id.toString()) {
+        return res.status(403).json({ success: false, message: 'You can only delete your own products' });
+      }
+    }
+
+    await Product.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Product deleted successfully'
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // ১. ভেন্ডর কর্তৃক নতুন প্রোডাক্ট তৈরি (Create Product)
 const createProduct = async (req, res) => {
   try {
@@ -103,4 +128,4 @@ const getVendorProducts = async (req, res) => {
   }
 };
 
-module.exports = { createProduct, getAllProducts, getProductById, getVendorProducts };
+module.exports = { createProduct, getAllProducts, getProductById, getVendorProducts, deleteProduct };

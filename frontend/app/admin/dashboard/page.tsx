@@ -22,6 +22,7 @@ export default function AdminDashboard() {
   const [shops, setShops] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [approvingShopId, setApprovingShopId] = useState<string | null>(null);
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
 
   // Stats Counters
   const [stats, setStats] = useState({
@@ -79,6 +80,22 @@ export default function AdminDashboard() {
       alert(error.response?.data?.message || 'Failed to approve shop.');
     } finally {
       setApprovingShopId(null);
+    }
+  };
+
+  const handleDeleteProduct = async (productId: string) => {
+    const confirmed = window.confirm('Are you sure you want to delete this product?');
+    if (!confirmed) return;
+
+    try {
+      setDeletingProductId(productId);
+      await API.delete(`/products/${productId}`);
+      await fetchAdminData();
+      alert('Product deleted successfully.');
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Failed to delete product.');
+    } finally {
+      setDeletingProductId(null);
     }
   };
 
@@ -282,8 +299,13 @@ export default function AdminDashboard() {
                           <button className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg transition shadow-sm">
                             Approve
                           </button>
-                          <button className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg transition">
-                            Reject
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteProduct(item._id)}
+                            disabled={deletingProductId === item._id}
+                            className="px-3 py-1.5 bg-red-50 hover:bg-red-100 disabled:opacity-50 text-red-600 text-xs font-semibold rounded-lg transition"
+                          >
+                            {deletingProductId === item._id ? 'Deleting...' : 'Delete'}
                           </button>
                         </td>
                       </tr>

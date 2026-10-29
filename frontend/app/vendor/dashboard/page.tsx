@@ -19,6 +19,7 @@ export default function VendorDashboard() {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
 
   // New Software Upload Form State
   const [formData, setFormData] = useState({
@@ -73,6 +74,24 @@ export default function VendorDashboard() {
       alert(error.response?.data?.message || 'Failed to upload software.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDeleteProduct = async (productId: string) => {
+    const confirmed = window.confirm('Are you sure you want to delete this product?');
+    if (!confirmed) return;
+
+    try {
+      setDeletingProductId(productId);
+      const response = await API.delete(`/products/${productId}`);
+      if (response.data.success) {
+        await fetchVendorProducts();
+        alert('Product deleted successfully.');
+      }
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Failed to delete product.');
+    } finally {
+      setDeletingProductId(null);
     }
   };
 
@@ -152,9 +171,19 @@ export default function VendorDashboard() {
                   </div>
                   <div className="flex items-center justify-between border-t pt-3">
                     <span className="font-extrabold text-indigo-600">৳{item.price}</span>
-                    <span className="flex items-center gap-1 text-[11px] text-emerald-600 font-semibold">
-                      <CheckCircle2 className="w-3.5 h-3.5" /> Active
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center gap-1 text-[11px] text-emerald-600 font-semibold">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Active
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteProduct(item._id)}
+                        disabled={deletingProductId === item._id}
+                        className="px-2.5 py-1 bg-red-50 hover:bg-red-100 disabled:opacity-50 text-red-600 text-[10px] font-semibold rounded-lg transition"
+                      >
+                        {deletingProductId === item._id ? 'Deleting...' : 'Delete'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
