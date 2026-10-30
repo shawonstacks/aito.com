@@ -4,10 +4,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
-import { ShoppingBag, User, LogOut, LayoutDashboard, Menu, X } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import { ShoppingBag, User, LogOut, LayoutDashboard, Menu, X, Code } from 'lucide-react';
+import NotificationBell from './NotificationBell';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { itemCount } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -26,9 +29,16 @@ export default function Navbar() {
               Marketplace
             </Link>
 
-            <Link href="/cart" className="p-2 text-gray-700 hover:text-indigo-600 relative">
+            <Link href="/cart" className="p-2 text-gray-700 hover:text-indigo-600 relative flex items-center">
               <ShoppingBag className="w-6 h-6" />
+              {itemCount > 0 && (
+                <span className="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-bold rounded-full h-4 min-w-[16px] px-1 flex items-center justify-center shadow-sm">
+                  {itemCount}
+                </span>
+              )}
             </Link>
+
+            {user && <NotificationBell />}
 
             {user ? (
               <div className="flex items-center gap-4">
@@ -71,6 +81,13 @@ export default function Navbar() {
             ) : (
               <div className="flex items-center gap-3">
                 <Link
+                  href="/vendor/login"
+                  className="flex items-center gap-1 text-xs font-semibold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition"
+                >
+                  <Code className="w-3.5 h-3.5" />
+                  Vendor Portal
+                </Link>
+                <Link
                   href="/login"
                   className="text-sm font-medium text-gray-700 hover:text-indigo-600 px-3 py-2"
                 >
@@ -87,9 +104,16 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Right Icons & Hamburger Button */}
-          <div className="flex items-center gap-3 md:hidden">
-            <Link href="/cart" className="p-2 text-gray-700 hover:text-indigo-600">
+          <div className="flex items-center gap-2 md:hidden">
+            {user && <NotificationBell />}
+
+            <Link href="/cart" className="p-2 text-gray-700 hover:text-indigo-600 relative">
               <ShoppingBag className="w-6 h-6" />
+              {itemCount > 0 && (
+                <span className="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-bold rounded-full h-4 min-w-[16px] px-1 flex items-center justify-center shadow-sm">
+                  {itemCount}
+                </span>
+              )}
             </Link>
 
             <button
@@ -112,6 +136,15 @@ export default function Navbar() {
             className="block text-sm font-semibold text-gray-700 hover:text-indigo-600 py-1"
           >
             Marketplace
+          </Link>
+
+          <Link
+            href="/vendor/login"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-2 text-sm font-semibold text-indigo-600 py-1"
+          >
+            <Code className="w-4 h-4" />
+            Vendor / Developer Portal
           </Link>
 
           {user ? (
@@ -166,7 +199,7 @@ export default function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
                 className="w-full text-center text-sm font-semibold text-gray-700 bg-gray-100 py-2.5 rounded-lg hover:bg-gray-200"
               >
-                Login
+                Customer Login
               </Link>
               <Link
                 href="/register"

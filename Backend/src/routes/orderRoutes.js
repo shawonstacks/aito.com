@@ -6,6 +6,7 @@ const { authenticate, authorizeRoles } = require('../middlewares/authMiddleware'
 const router = express.Router();
 
 // কাস্টমার রাউট
+router.post('/', authenticate, authorizeRoles('CUSTOMER'), createOrder);
 router.post('/create', authenticate, authorizeRoles('CUSTOMER'), createOrder);
 router.get('/my-orders', authenticate, authorizeRoles('CUSTOMER'), getCustomerOrders);
 

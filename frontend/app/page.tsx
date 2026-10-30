@@ -4,27 +4,44 @@
 import { useEffect, useState } from 'react';
 import API from '../services/api';
 import ProductCard from '../components/ProductCard';
-import { Terminal, ShieldCheck, Cpu } from 'lucide-react';
+import { Terminal, ShieldCheck } from 'lucide-react';
+
+interface MarketplaceProduct {
+  _id: string;
+  title: string;
+  price: number;
+  comparePrice?: number;
+  images?: string[];
+  image?: string;
+  category: string;
+  shopId?: {
+    shopName: string;
+  };
+}
 
 export default function HomePage() {
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<MarketplaceProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let ignore = false;
     const fetchProducts = async () => {
       try {
         const response = await API.get('/products');
-        if (response.data.success) {
-          setProducts(response.data.products);
+        if (!ignore && response.data.success) {
+          setProducts(response.data.products || []);
         }
       } catch (error) {
-        console.error('Failed to fetch products:', error);
+        if (!ignore) console.error('Failed to fetch products:', error);
       } finally {
-        setLoading(false);
+        if (!ignore) setLoading(false);
       }
     };
 
     fetchProducts();
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   return (
@@ -66,7 +83,7 @@ export default function HomePage() {
           </div>
         ) : products.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.map((product: any) => (
+            {products.map((product) => (
               <ProductCard key={product._id} product={product} />
             ))}
           </div>

@@ -1,6 +1,10 @@
 // frontend/components/ProductCard.tsx
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Store } from 'lucide-react';
+import { ShoppingBag, Store, Check, Plus } from 'lucide-react';
+import { useCart } from '../context/CartContext';
 
 interface ProductProps {
   product: {
@@ -12,18 +16,40 @@ interface ProductProps {
     image?: string;
     category: string;
     shopId?: {
-      shopName: string;
+      _id?: string;
+      shopName?: string;
     };
   };
 }
 
 export default function ProductCard({ product }: ProductProps) {
+  const { addToCart } = useCart();
+  const [added, setAdded] = useState(false);
+
   const productImage = (product.images && product.images.length > 0) ? product.images[0] : product.image;
 
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart({
+      productId: product._id,
+      title: product.title,
+      price: product.price,
+      comparePrice: product.comparePrice,
+      category: product.category,
+      image: productImage,
+      shopId: product.shopId?._id,
+      shopName: product.shopId?.shopName,
+    }, 1);
+
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1500);
+  };
+
   return (
-    <div className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition group flex flex-col justify-between">
+    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition group flex flex-col justify-between">
       <div>
-        {/* Product Image Placeholder */}
+        {/* Product Image Preview */}
         <Link href={`/products/${product._id}`} className="block relative w-full h-48 bg-gray-100 overflow-hidden">
           {productImage ? (
             <img
@@ -37,7 +63,7 @@ export default function ProductCard({ product }: ProductProps) {
               <span>No Image Available</span>
             </div>
           )}
-          <span className="absolute top-2 left-2 bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+          <span className="absolute top-2.5 left-2.5 bg-indigo-600/95 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
             {product.category}
           </span>
         </Link>
@@ -59,23 +85,42 @@ export default function ProductCard({ product }: ProductProps) {
           </Link>
 
           {/* Pricing */}
-          <div className="flex items-baseline gap-2 mb-4">
-            <span className="text-lg font-bold text-gray-900">৳{product.price}</span>
+          <div className="flex items-baseline gap-2 mb-2">
+            <span className="text-lg font-bold text-gray-900">৳{product.price.toLocaleString()}</span>
             {product.comparePrice && product.comparePrice > product.price && (
-              <span className="text-sm text-gray-400 line-through">৳{product.comparePrice}</span>
+              <span className="text-xs text-gray-400 line-through">৳{product.comparePrice.toLocaleString()}</span>
             )}
           </div>
         </div>
       </div>
 
-      {/* View & Buy Button */}
-      <div className="p-4 pt-0">
+      {/* Action Buttons: Add to Cart & View */}
+      <div className="p-4 pt-0 grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={handleAddToCart}
+          className={`py-2 px-3 rounded-xl font-semibold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm ${
+            added
+              ? 'bg-emerald-600 text-white'
+              : 'bg-indigo-600 hover:bg-indigo-700 text-white'
+          }`}
+        >
+          {added ? (
+            <>
+              <Check className="w-3.5 h-3.5" /> Added
+            </>
+          ) : (
+            <>
+              <Plus className="w-3.5 h-3.5" /> Add to Cart
+            </>
+          )}
+        </button>
+
         <Link
           href={`/products/${product._id}`}
-          className="w-full bg-indigo-50 text-indigo-600 font-medium py-2 rounded-lg hover:bg-indigo-600 hover:text-white transition flex items-center justify-center gap-2 text-sm"
+          className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 px-3 rounded-xl transition flex items-center justify-center gap-1.5 text-xs text-center"
         >
-          <ShoppingBag className="w-4 h-4" />
-          View & Order
+          Details
         </Link>
       </div>
     </div>
