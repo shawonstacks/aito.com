@@ -1,15 +1,13 @@
-version: '3.8'
-
 services:
   mongodb:
     image: mongo:latest
-    container_name: ecommerce-mongo
+    container_name: ecommerce-mongodb
     restart: always
-    ports:
-      - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: secretpassword
+    ports:
+      - "27017:27017"
     volumes:
       - mongo_data:/data/db
 
@@ -27,13 +25,17 @@ services:
       - mongodb
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        - NEXT_PUBLIC_API_URL=https://eito.bd/api
     container_name: ecommerce-frontend
     restart: always
     ports:
       - "3000:3000"
     environment:
       - PORT=3000
+      - NEXT_PUBLIC_API_URL=https://eito.bd/api
     depends_on:
       - backend
 
